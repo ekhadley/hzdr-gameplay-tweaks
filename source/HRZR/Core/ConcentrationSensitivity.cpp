@@ -11,10 +11,10 @@ namespace HRZR
 	//
 	// FUN_140f735b0 is the camera look application. It takes the camera in rcx and the (slowed) frame delta-time in
 	// xmm1. The aim/look controller lives at Player + 0x138 (see PlayerGame::GetMouseLookInput); its processed look
-	// vector is the float2 at controller + 0x4790, and bit 0 of the flags at controller + 0x47D8 marks active aiming.
+	// vector is the float2 at controller + 0x4790. We gate solely on the world being slowed: concentration is an
+	// aiming-only state, so timescale < 1 with a live look controller already implies the player is aiming.
 	constexpr ptrdiff_t kAimControllerOffset = 0x138;
 	constexpr ptrdiff_t kLookInputOffset = 0x4790;
-	constexpr ptrdiff_t kAimFlagsOffset = 0x47D8;
 
 	void (*OriginalUpdateCameraLook)(void *Camera, float DeltaTime);
 	void HookedUpdateCameraLook(void *Camera, float DeltaTime)
@@ -24,13 +24,11 @@ namespace HRZR
 
 		auto player = Player::GetLocalPlayer();
 		auto controller = player ? *reinterpret_cast<uint8_t **>(reinterpret_cast<uint8_t *>(player) + kAimControllerOffset) : nullptr;
-		const uint32_t aimFlags = controller ? *reinterpret_cast<uint32_t *>(controller + kAimFlagsOffset) : 0;
 
 		const bool slowMotion = timeScale < 1.0f;
-		const bool aiming = (aimFlags & 1) != 0;
 		float k = 1.0f;
 
-		if (correction > 0.0f && slowMotion && controller && aiming)
+		if (correction > 0.0f && slowMotion && controller)
 		{
 			const float t = std::max(timeScale, 0.05f);
 			k = 1.0f + correction * (1.0f / t - 1.0f);
@@ -50,8 +48,8 @@ namespace HRZR
 			{
 				auto look = controller ? reinterpret_cast<float *>(controller + kLookInputOffset) : nullptr;
 				spdlog::debug(
-					"ConcSens ts={:.3f} slowmo={} player={} ctrl={} flags=0x{:X} aim={} k={:.3f} look=({:.4f},{:.4f})",
-					timeScale, slowMotion, static_cast<void *>(player), static_cast<void *>(controller), aimFlags, aiming, k,
+					"ConcSens ts={:.3f} slowmo={} player={} ctrl={} k={:.3f} look=({:.4f},{:.4f})",
+					timeScale, slowMotion, static_cast<void *>(player), static_cast<void *>(controller), k,
 					look ? look[0] : 0.0f, look ? look[1] : 0.0f);
 			}
 		}

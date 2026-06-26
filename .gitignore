@@ -7,4 +7,5 @@
 !.vs/launch_with_automation.ps1
 
 # Artifacts
-bin/*
+bin/*built/
+desc.md
