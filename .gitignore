@@ -9,3 +9,5 @@
 # Artifacts
 bin/*built/
 desc.md
+bin/
+built/
