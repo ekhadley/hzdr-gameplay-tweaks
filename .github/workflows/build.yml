@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Put cl.exe / the MSVC toolset on PATH so the Ninja generator can find it.
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+
+      # vcpkg is preinstalled on the runner (VCPKG_ROOT set); the manifest in
+      # vcpkg.json drives dependency installation during configure.
+      - name: Configure
+        run: cmake --preset final-universal
+
+      - name: Build (Release)
+        run: cmake --build --preset final-universal-release
+
+      - name: Stage artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $dll = Get-ChildItem -Recurse bin -Filter winhttp.dll | Select-Object -First 1
+          if (-not $dll) { throw "winhttp.dll not found under bin/" }
+          Copy-Item $dll.FullName dist\winhttp.dll
+          Copy-Item resources\mod_config.ini dist\mod_config.ini
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hzdr-gameplay-tweaks
+          path: dist/

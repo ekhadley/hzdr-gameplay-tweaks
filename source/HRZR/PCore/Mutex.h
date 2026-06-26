@@ -5,7 +5,7 @@ namespace HRZR
 	class SharedMutex final
 	{
 	private:
-		uint8_t alignas(alignof(void *)) m_WinLockData[0x8];
+		alignas(alignof(void *)) uint8_t m_WinLockData[0x8];
 
 	public:
 		SharedMutex();
@@ -25,7 +25,7 @@ namespace HRZR
 	class RecursiveMutex final
 	{
 	private:
-		uint8_t alignas(alignof(void *)) m_WinLockData[0x28];
+		alignas(alignof(void *)) uint8_t m_WinLockData[0x28];
 
 	public:
 		RecursiveMutex();

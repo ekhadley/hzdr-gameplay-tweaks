@@ -22,6 +22,7 @@ namespace InternalModConfig
 		// [General]
 		bool EnableDebugMenu;
 		bool EnableAssetLogging;
+		bool EnableConcentrationSensitivityLogging;
 		bool EnableAssetOverrides;
 		float DebugMenuFontScale;
 
@@ -48,6 +49,8 @@ namespace InternalModConfig
 		bool DisableFocusMagnetism;
 
 		bool ForceLeftAlignedCamera;
+
+		float ConcentrationSensitivityCorrection;
 
 		// [Hotkeys]
 		struct

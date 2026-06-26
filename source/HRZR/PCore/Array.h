@@ -32,9 +32,6 @@ namespace HRZR
 	class Array final : public ArrayBase
 	{
 	public:
-		template<bool Const, typename PtrType = std::conditional_t<Const, const_pointer, pointer>>
-		class internal_iterator;
-
 		using value_type = T;
 		using difference_type = ptrdiff_t;
 
@@ -43,6 +40,9 @@ namespace HRZR
 
 		using pointer = value_type *;
 		using const_pointer = const value_type *;
+
+		template<bool Const, typename PtrType = std::conditional_t<Const, const_pointer, pointer>>
+		class internal_iterator;
 
 		using iterator = internal_iterator<false>;
 		using const_iterator = internal_iterator<true>;

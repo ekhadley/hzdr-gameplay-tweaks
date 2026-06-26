@@ -118,9 +118,8 @@ target_compile_definitions(
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${CURRENT_PROJECT} PRIVATE spdlog::spdlog)
 
-# tomlplusplus
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus)
+# tomlplusplus is header-only and exposed via vcpkg's global include directory
+# (<toml++/toml.h>), so it needs no find_package or link target.
 
 # Detours
 find_package(detours CONFIG REQUIRED)

@@ -119,6 +119,7 @@ namespace InternalModConfig
 		{
 			PARSE_TOML_MEMBER(general, EnableDebugMenu);
 			PARSE_TOML_MEMBER(general, EnableAssetLogging);
+			PARSE_TOML_MEMBER(general, EnableConcentrationSensitivityLogging);
 			PARSE_TOML_MEMBER(general, EnableAssetOverrides);
 			PARSE_TOML_MEMBER(general, DebugMenuFontScale);
 
@@ -151,6 +152,8 @@ namespace InternalModConfig
 			PARSE_TOML_MEMBER(gameplay, DisableFocusMagnetism);
 
 			PARSE_TOML_MEMBER(gameplay, ForceLeftAlignedCamera);
+
+			PARSE_TOML_MEMBER(gameplay, ConcentrationSensitivityCorrection);
 		}
 
 		// [Hotkeys]
