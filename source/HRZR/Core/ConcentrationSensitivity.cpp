@@ -11,10 +11,14 @@ namespace HRZR
 	//
 	// FUN_140f735b0 is the camera look application. It takes the camera in rcx and the (slowed) frame delta-time in
 	// xmm1. The aim/look controller lives at Player + 0x138 (see PlayerGame::GetMouseLookInput); its processed look
-	// vector is the float2 at controller + 0x4790. We gate solely on the world being slowed: concentration is an
-	// aiming-only state, so timescale < 1 with a live look controller already implies the player is aiming.
+	// vector is the float2 at controller + 0x4790. We only correct when the world is slowed *and* the player is
+	// actually aiming, because the weapon wheel also slows the world and correcting there over-boosts the mouse. Bit 0
+	// of the dword at controller + 0x1CB8 is set while the player is aiming (including concentration) and clear during
+	// the weapon wheel, so it distinguishes the two slowdowns. (Offset found by diffing the controller's memory across
+	// aim / concentration / not-aiming / weapon-wheel states with the process attached.)
 	constexpr ptrdiff_t kAimControllerOffset = 0x138;
 	constexpr ptrdiff_t kLookInputOffset = 0x4790;
+	constexpr ptrdiff_t kAimStateOffset = 0x1CB8;
 
 	void (*OriginalUpdateCameraLook)(void *Camera, float DeltaTime);
 	void HookedUpdateCameraLook(void *Camera, float DeltaTime)
@@ -26,9 +30,10 @@ namespace HRZR
 		auto controller = player ? *reinterpret_cast<uint8_t **>(reinterpret_cast<uint8_t *>(player) + kAimControllerOffset) : nullptr;
 
 		const bool slowMotion = timeScale < 1.0f;
+		const bool aiming = controller && (*reinterpret_cast<uint32_t *>(controller + kAimStateOffset) & 1u);
 		float k = 1.0f;
 
-		if (correction > 0.0f && slowMotion && controller)
+		if (correction > 0.0f && slowMotion && aiming)
 		{
 			const float t = std::max(timeScale, 0.05f);
 			k = 1.0f + correction * (1.0f / t - 1.0f);
@@ -47,9 +52,10 @@ namespace HRZR
 			if (throttle++ % 30 == 0)
 			{
 				auto look = controller ? reinterpret_cast<float *>(controller + kLookInputOffset) : nullptr;
+				auto aimFlag = controller ? *reinterpret_cast<uint32_t *>(controller + kAimStateOffset) : 0u;
 				spdlog::debug(
-					"ConcSens ts={:.3f} slowmo={} player={} ctrl={} k={:.3f} look=({:.4f},{:.4f})",
-					timeScale, slowMotion, static_cast<void *>(player), static_cast<void *>(controller), k,
+					"ConcSens ts={:.3f} slowmo={} aiming={} aimflag={:#x} player={} ctrl={} k={:.3f} look=({:.4f},{:.4f})",
+					timeScale, slowMotion, aiming, aimFlag, static_cast<void *>(player), static_cast<void *>(controller), k,
 					look ? look[0] : 0.0f, look ? look[1] : 0.0f);
 			}
 		}
