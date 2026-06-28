@@ -17,6 +17,8 @@
 
 #define assert_offset(Type, Member, Offset) static_assert(offsetof(Type, Member) == Offset, "Offset mismatch")
 
+#define mytestconstant 100
+
 template<size_t N>
 requires(N > 1)
 class XorStr
